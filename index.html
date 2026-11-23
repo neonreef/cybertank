@@ -165,6 +165,14 @@ html,body{margin:0;height:100%;background:#04070a;overflow:hidden;
   font-size:12px;letter-spacing:.12em;}
 .help .close:hover{background:rgba(30,88,104,.55);color:#fff;}
 
+/* 存档备份条：导出 / 导入 / 用备份恢复 */
+.help .savebar{display:flex;gap:8px;margin-top:14px;}
+.help .savebar button{flex:1;appearance:none;border:1px solid rgba(126,214,255,.24);
+  background:rgba(12,34,44,.72);color:#a9c9d6;padding:9px 4px;border-radius:10px;cursor:pointer;
+  font-size:11.5px;letter-spacing:.04em;font-family:inherit;}
+.help .savebar button:hover{background:rgba(26,74,90,.78);color:#fff;border-color:rgba(126,214,255,.45);}
+.help .savenote{font-size:10.5px;color:#5f8394;line-height:1.7;margin-top:8px;letter-spacing:.02em;}
+
 /* ===== 模式 ===== */
 body.sv .hud,body.sv .tools,body.sv .dock{opacity:0;pointer-events:none;}
 body.sv #stage{cursor:none;}
@@ -431,7 +439,10 @@ html,body{
         <b>鱼市</b>
         <div class="pk-title-sub" id="mktSub">今天到了 3 条</div>
       </div>
-      <button class="pk-x" id="mktClose">×</button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="pk-x wide" id="mktRefresh">刷新 · 120 币</button>
+        <button class="pk-x" id="mktClose">×</button>
+      </div>
     </div>
     <div class="booth">
       <canvas id="chenFace" width="72" height="72"></canvas>
@@ -448,6 +459,11 @@ html,body{
     <div class="box">
       <h3>赛博鱼缸</h3>
       <div class="sub">A PIXEL TANK WITH ITS OWN RULES</div>
+      <div class="savebar">
+        <button id="btnExpSave">导出存档</button>
+        <button id="btnImpSave">导入存档</button>
+        <button id="btnBakSave">用备份恢复</button>
+      </div>
       <ul>
         <li><b>点水面</b> 投食，水波会推一下附近的鱼</li>
         <li><b>滚轮缩放 / 按住拖动</b> 凑近看细节，双击还原视角</li>
@@ -467,6 +483,7 @@ html,body{
         <li><b>卖鱼</b> 列表或卡片上「卖」，养得艳、养得健康卖得贵</li>
         <li><b>蔫了的鱼</b> 水差或饿久了会不吃食、缩在草边、动作变慢；把水和喂食管好就缓过来了</li>
       </ul>
+      <div class="savenote">存档只存在这台设备的这个网址下。换设备、换浏览器、换域名都会看不见——先导出一份 .json 揣着，到新地方再导入，鱼一条都不会少。每次保存都会自动留一份上一版备份。</div>
       <button class="close" id="btnCloseHelp">知道了</button>
     </div>
   </div>
@@ -4488,6 +4505,28 @@ el('mktBody').addEventListener('click', e=>{
 });
 el('mktClose').onclick = closeMarket;
 
+/* 花钱立刻换一批货，不用干等两小时 */
+const REFRESH_COST = 120;
+function refreshMarket(){
+  const cost = REFRESH_COST;
+  const have = Math.round(S.coin || 0);
+  if(have < cost){
+    chenSay(pick(CHEN.poor));
+    toast('刷新要 ' + cost + ' 币 · 还差 ' + Math.ceil(cost - have) + ' 币');
+    if(S.snd) SND.tap();
+    return;
+  }
+  addCoin(-cost);
+  S.mkt = { at: Date.now(), stock: mktRestock(), said: 1 };
+  chenSay('换一批，新的都摆上架了。');
+  save();
+  renderMarket();
+  if(S.snd) SND.tap();
+  toast('货架换了一批 · -' + cost + ' 币', 2200);
+}
+el('mktRefresh').onclick = refreshMarket;
+el('mktRefresh').textContent = '刷新 · ' + REFRESH_COST + ' 币';
+
 /* =========================================================
    传说鱼的光：绕身的一点冷光 + 缓慢旋转的星芒
    ========================================================= */
@@ -5079,10 +5118,11 @@ function toast(msg, ms=1800){
    存档
    ========================================================= */
 const KEY = 'cybertank.v3';
+const BAK = 'cybertank.v3.bak';
 const OLD_KEY = 'cybertank.v2';
 function save(){
   try{
-    localStorage.setItem(KEY, JSON.stringify({
+    const str = JSON.stringify({
       at: Date.now(), clean: S.clean, algae: S.algae, growth: S.growth, wlv: Math.round((S.wlv ?? 1)*1000)/1000, tank: S.tankLv || 1, rv: 2, dlc: !!S.dlc, skin: S.skin, snd: S.snd ? 1 : 0, bgm: BGM.idx + 1,
       deco: { weeds: S.weeds.map(w=>Math.round(w.x)), gw: S.weeds.map(w=>Math.round((w.grow||0)*100)/100), logs: (S.logs||[]).map(g=>Math.round(g.x)), stones: (S.stones||[]).map(s=>Math.round(s.x)), rocks: S.rocks.map(r=>Math.round(r.x)) },
       clock: Math.round(S.clock*100)/100, tsc: S.timeScale,
@@ -5096,13 +5136,29 @@ function save(){
         lg: f.legend ? 1 : 0, ln: f.legendName || null
       })),
       creatures: S.creatures.map(c=>({t:c.type, x:c.x, y:c.y}))
-    }));
+    });
+    // 写主档前，把上一份成功存档留成备份，主档写坏也能回退
+    if(!str || str.length < 60) return;
+    let prev = null;
+    try{ prev = localStorage.getItem(KEY); }catch(e){}
+    if(prev && prev !== str && prev.length > 60){
+      try{ localStorage.setItem(BAK, prev); }catch(e){}
+    }
+    localStorage.setItem(KEY, str);
   }catch(e){}
 }
 
+function readSave(k){
+  try{
+    const d = JSON.parse(localStorage.getItem(k) || 'null');
+    if(d && Array.isArray(d.fish) && d.fish.length) return d;
+  }catch(e){}
+  return null;
+}
+
 function load(){
-  let d = null;
-  try{ d = JSON.parse(localStorage.getItem(KEY) || 'null'); }catch(e){}
+  let d = readSave(KEY), fromBak = false;
+  if(!d){ d = readSave(BAK); fromBak = !!d; }
   if(!d){
     try{ d = JSON.parse(localStorage.getItem(OLD_KEY) || 'null'); }catch(e){}
     if(d && Array.isArray(d.creatures)){
@@ -5110,6 +5166,11 @@ function load(){
     }
   }
   if(!d || !Array.isArray(d.fish) || !d.fish.length) return false;
+  if(fromBak){
+    // 用备份顶上后，立刻把主档修回来，别让下一次启动又踩同一个坑
+    try{ localStorage.setItem(KEY, localStorage.getItem(BAK) || ''); }catch(e){}
+    setTimeout(()=>{ if(typeof toast === 'function') toast('主存档没读出来，已用备份恢复', 3200); }, 900);
+  }
   const T = S.tank;
   S.dlc = !!d.dlc;
   S.skin = d.skin === 'reef' ? 'reef' : 'forest';
@@ -5652,6 +5713,74 @@ setLandUI();
 
 el('btnHelp').onclick = ()=> el('help').classList.add('show');
 el('btnCloseHelp').onclick = ()=> el('help').classList.remove('show');
+
+/* ============ 存档导出 / 导入 / 备份回退 ============ */
+function saveStamp(){
+  const d = new Date(), p = n => String(n).padStart(2,'0');
+  return d.getFullYear() + p(d.getMonth()+1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes());
+}
+function exportSave(){
+  let raw = '';
+  try{ raw = localStorage.getItem(KEY) || ''; }catch(e){}
+  if(!raw){ toast('这个网址下还没有存档'); return; }
+  try{
+    const blob = new Blob([raw], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'cybertank-save-' + saveStamp() + '.json';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1200);
+    toast('存档已导出 · 收好这个 .json', 2600);
+  }catch(e){ toast('导出失败，换浏览器试试'); }
+}
+function importSave(){
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = '.json,application/json';
+  inp.style.display = 'none';
+  document.body.appendChild(inp);
+  inp.onchange = ()=>{
+    const f = inp.files && inp.files[0];
+    if(!f) return;
+    const r = new FileReader();
+    r.onload = ()=>{
+      let d = null;
+      try{ d = JSON.parse(String(r.result)); }catch(e){}
+      if(!d || !Array.isArray(d.fish) || !d.fish.length){ toast('这不是有效的存档文件'); return; }
+      const cnt = d.fish.length;
+      if(!confirm('导入会用存档里的 ' + cnt + ' 条鱼覆盖当前的 ' + S.fish.length + ' 条。当前进度会先留一份备份，确定？')) return;
+      try{
+        const cur = localStorage.getItem(KEY);
+        if(cur) localStorage.setItem(BAK, cur);
+        localStorage.setItem(KEY, JSON.stringify(d));
+      }catch(e){ toast('写入失败：浏览器存储满了'); return; }
+      toast('存档已导入 · 正在重载', 2000);
+      setTimeout(()=> location.reload(), 900);
+    };
+    r.readAsText(f);
+    inp.remove();
+  };
+  inp.click();
+}
+function restoreBak(){
+  let b = '';
+  try{ b = localStorage.getItem(BAK) || ''; }catch(e){}
+  if(!b){ toast('还没有备份可恢复'); return; }
+  let n = 0;
+  try{ const d = JSON.parse(b); n = (d.fish || []).length; }catch(e){}
+  if(!confirm('用备份覆盖当前进度（备份里 ' + n + ' 条鱼），确定？')) return;
+  try{
+    const cur = localStorage.getItem(KEY);
+    if(cur) localStorage.setItem(KEY + '.tmp', cur);
+    localStorage.setItem(KEY, b);
+  }catch(e){ toast('写入失败：浏览器存储满了'); return; }
+  toast('已用备份恢复 · 正在重载', 2000);
+  setTimeout(()=> location.reload(), 900);
+}
+el('btnExpSave').onclick = exportSave;
+el('btnImpSave').onclick = importSave;
+el('btnBakSave').onclick = restoreBak;
 el('help').addEventListener('click', e=>{ if(e.target.id === 'help') el('help').classList.remove('show'); });
 
 window.addEventListener('keydown', e=>{
