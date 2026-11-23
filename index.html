@@ -1054,14 +1054,11 @@ function layout(){
     const bottom = portrait ? 82 : 6;
     S.tank = {x:6, y:top, w:W-12, h:H-top-bottom};
   }else{
-    const padX = Math.max(6, Math.min(18, W*0.012));
-    const padTop = Math.max(44, Math.min(54, H*0.058));
-    const padBottom = Math.max(52, Math.min(64, H*0.069));
-    const aw = W - padX*2, ah = H - padTop - padBottom;
-    let tw = aw, th = aw*0.545;
-    if(th > ah){ th = ah; tw = th/0.545; }
-    if(tw > aw){ tw = aw; th = tw*0.545; }
-    S.tank = {x:(W-tw)/2, y:padTop + (ah-th)/2, w:tw, h:th};
+    const padX = Math.max(4, Math.min(12, W*0.008));
+    const padTop = Math.max(64, Math.min(76, H*0.078));
+    const padBottom = Math.max(48, Math.min(58, H*0.064));
+    /* 铺满：缸体直接吃满顶栏与底栏之间，不再按 0.545 比例居中留黑 */
+    S.tank = {x:padX, y:padTop, w:W-padX*2, h:H-padTop-padBottom};
   }
 
   const T = S.tank;
@@ -3005,10 +3002,10 @@ function drawVignette(){
   const T = S.tank;
   const cx = T.x + T.w*0.5, cy = T.y + T.h*0.38;
   ctx.save();
-  const g = ctx.createRadialGradient(cx, cy, Math.min(T.w,T.h)*0.30, cx, cy, Math.max(T.w,T.h)*0.78);
+  const g = ctx.createRadialGradient(cx, cy, Math.min(T.w,T.h)*0.52, cx, cy, Math.max(T.w,T.h)*0.95);
   g.addColorStop(0,   'rgba(2,10,18,0)');
-  g.addColorStop(0.68,'rgba(2,10,20,0.075)');
-  g.addColorStop(1,   'rgba(1,6,16,0.20)');
+  g.addColorStop(0.74,'rgba(2,10,20,0.028)');
+  g.addColorStop(1,   'rgba(1,6,16,0.085)');
   ctx.fillStyle = g;
   ctx.fillRect(T.x, T.y, T.w, T.h);
   ctx.restore();
