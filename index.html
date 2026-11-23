@@ -357,6 +357,36 @@ html,body{
 #mktBox .pk-item{align-self:start;}
 .card .ops button.heal{color:#9fe9c0;border-color:rgba(126,214,178,.45) !important}
 .card .ops button.heal:hover{background:rgba(20,52,42,.9);color:#c4f6d8}
+/* ---------- 图鉴 ---------- */
+#dexBox .pk-body{display:block !important;grid-template-columns:none !important;column-count:auto !important;
+  padding:0 2px 10px;}
+.dx-sec{display:flex;align-items:baseline;justify-content:space-between;margin:10px 4px 7px;padding-top:9px;
+  border-top:1px solid rgba(126,214,255,.10);}
+.dx-sec.first{border-top:0;padding-top:0;margin-top:2px;}
+.dx-sec .t{font:11px/1 ui-monospace,Consolas,monospace;letter-spacing:.18em;color:#7fb9c9;text-transform:uppercase;}
+.dx-sec .n{font:10px/1 ui-monospace,Consolas,monospace;color:#4f7d8d;letter-spacing:.08em;}
+.dx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;}
+.dx-card{display:flex;gap:7px;align-items:flex-start;padding:7px 8px;border-radius:9px;
+  border:1px solid rgba(126,214,255,.10);background:rgba(12,32,41,.42);opacity:.48;transition:.15s;}
+.dx-card.on{opacity:1;border-color:rgba(126,214,255,.24);background:rgba(14,38,48,.62);}
+.dx-thumb{flex:none;width:40px;height:28px;display:flex;align-items:center;justify-content:center;
+  background:#05161c;border:1px solid rgba(126,214,255,.12);border-radius:4px;overflow:hidden;}
+.dx-thumb img{max-width:38px;max-height:26px;image-rendering:pixelated;}
+.dx-txt{min-width:0;flex:1 1 auto;}
+.dx-nm{font:11px/1.3 ui-monospace,Consolas,monospace;color:#a9dcea;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dx-en{font:8.5px/1.3 ui-monospace,Consolas,monospace;color:#46707f;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dx-pal{display:flex;gap:3px;margin-top:5px;flex-wrap:wrap;}
+.dx-pal s{display:block;width:8px;height:8px;border-radius:2px;background:#0a2028;border:1px solid #24505f;}
+.dx-pal s.on{background:#8fe3f2;border-color:#c3f2fb;box-shadow:0 0 5px rgba(143,227,242,.50);}
+.dx-pal s.mut{background:#e0b062;border-color:#ffe0a4;box-shadow:0 0 5px rgba(224,176,98,.50);}
+.dx-lg{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px;}
+.dx-lgc{padding:10px 8px;border-radius:9px;text-align:center;border:1px dashed rgba(126,214,255,.14);
+  background:rgba(8,26,33,.38);}
+.dx-lgc.on{border:1px solid rgba(240,192,96,.45);background:rgba(46,34,14,.55);box-shadow:inset 0 0 14px rgba(240,192,96,.10);}
+.dx-palt{font:8.5px/1.35 ui-monospace,Consolas,monospace;color:#6f9cac;margin-top:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dx-lgc span{font:11px/1.2 ui-monospace,Consolas,monospace;color:#3f6577;letter-spacing:.08em;}
+.dx-lgc.on span{color:#f5d492;}
 </style>
 </head>
 <body>
@@ -369,7 +399,7 @@ html,body{
       <div><div class="k">FISH</div><div class="v" id="mFish">0</div></div>
       <div><div class="k">WATER</div><div class="v" id="mWater">100<i>%</i></div></div>
       <div><div class="k">ALGAE</div><div class="v" id="mAlgae">0<i>%</i></div></div>
-      <div><div class="k">HUNGER</div><div class="v" id="mHunger">0<i>%</i></div></div>
+      <div><div class="k">BELLY</div><div class="v" id="mHunger">0<i>%</i></div></div>
       <div><div class="k">COIN</div><div class="v" id="mCoin">0</div></div>
       <div><div class="k">FPS</div><div class="v" id="mFps">0</div></div>
     </div>
@@ -382,7 +412,7 @@ html,body{
     <button class="tb" id="btnSkin" title="缸景风格">缸景 <b id="skinState">森林</b></button>
     <button class="tb" id="btnSnd" title="环境音开关">声音 <b id="sndState">开</b></button>
     <button class="tb" id="btnDeco" title="布置：拖动水草/石头/沉木">布置 <b id="decoState">关</b></button>
-    <button class="tb" id="btnDlc" title="DLC：解锁 10 种新鱼">DLC <b id="dlcState">关</b></button>
+    <button class="tb" id="btnDex" title="图鉴：看养过哪些鱼、哪些花色">图鉴 <b id="dxBadge">0%</b></button>
     <button class="tb" id="btnGoal" title="养成目标">目标 <b id="gkBadge">0/8</b></button>
     <button class="tb" id="btnHelp" title="操作说明">?</button>
   </div>
@@ -438,6 +468,17 @@ html,body{
       </div>
     </div>
     <div class="pk-body ls-body" id="listBody"></div>
+  </div>
+
+  <div class="picker" id="dexBox">
+    <div class="pk-head">
+      <div>
+        <b>图鉴</b><i id="dxPct" style="font-style:normal;color:#f0c060;letter-spacing:.08em;margin-left:8px">0%</i>
+        <div class="pk-title-sub" id="dxSubLong">养过的鱼、出过的花色、遇见的传说</div>
+      </div>
+      <button class="pk-x" id="dxClose">×</button>
+    </div>
+    <div class="pk-body" id="dxBody"></div>
   </div>
 
   <div class="picker" id="mktBox">
@@ -939,17 +980,15 @@ function loadSprites(){
 function palOf(sp){ return PAL[sp.id] || [['原色', '']]; }
 function palCount(sp){ return palOf(sp).length; }
 function palName(sp, i){ const a = palOf(sp); const p = a[i] || a[0]; return p[0]; }
-/* 除原色外概率极低：整条鱼只有 2%~5% 会出变异品系，档位越靠后越罕见 */
+/* 花色按档位固定概率发：一档 16% / 二档 9% / 三档 6% / 四档 4%，越靠后越罕见
+   白化通常是最后一档，所以小鱼（只有两档）见到白化的机会最大 */
 function rollPal(sp){
   const n = palCount(sp);
   if(n <= 1) return 0;
-  const tier = TIER[sp.id] || 1;
-  const total = 0.020 + (tier - 1) * 0.0055;        // 2.0% ~ 4.2%
-  let sw = 0; const w = [];
-  for(let i=1;i<n;i++){ const k = Math.pow(0.58, i-1); w.push(k); sw += k; }
+  const STEP = [0.16, 0.09, 0.06, 0.04];
   let r = Math.random(), acc = 0;
   for(let i=1;i<n;i++){
-    acc += total * w[i-1] / sw;
+    acc += STEP[Math.min(i-1, STEP.length-1)];
     if(r < acc) return i;
   }
   return 0;
@@ -961,14 +1000,14 @@ function spritesReady(){ return sprGiveUp || sprDone >= sprTotal; }
    状态
    ========================================================= */
 const S = {
-  mode:'tank', autoMini:false, dlc:false,
+  mode:'tank', autoMini:false, dlc:true,
   W:0, H:0,
   tank:{x:0,y:0,w:0,h:0},
   sand:0, u:4,
   fish:[], creatures:[], food:[], debris:[], bubbles:[], weeds:[], rocks:[], ripples:[],
   sands:[], wakes:[], sparks:[], dust:[],
   clean:1, algae:0.05, time:0, uid:0,
-  feedTotal:0, seen:[], crewSeen:[], goals:{}, cleanRun:0, goalT:0,
+  feedTotal:0, seen:[], palSeen:[], crewSeen:[], goals:{}, cleanRun:0, goalT:0,
   mouse:{x:-9999,y:-9999,active:false,v:0},
   cardTarget:null, cardUntil:0,
   growth:0,
@@ -1291,8 +1330,8 @@ function rollRank(tier){
 const PATTERN_WORD = ['霜纹', '焰斑', '墨点', '金砂', '云鳞', '碎星', '雨丝', '火线', '青斑', '斑纹'];
 
 /* 新鱼按稀有度加权：越稀有（tier 高）越少出现，大鱼不会一缸都是 */
-/* DLC 关掉时，新鱼不进随机池 */
-function spPool(){ return S.dlc ? SPECIES : SPECIES.filter(function(sp){ return !sp.dlc; }); }
+/* DLC 默认全开，全部物种都在池里 */
+function spPool(){ return SPECIES; }
 function pickSpWeighted(){
   const pool = spPool();
   const w = [], n = pool.length;
@@ -1426,7 +1465,7 @@ function spawnFood(x,y,n){
       x: px + rnd(-S.u*2.4, S.u*2.4),
       y: py + rnd(-S.u*1.6, S.u*1.6),
       vx: rnd(-7,7), vy: rnd(-4,10),
-      life: rnd(8,12), eaten:false, ph: rnd(0,6.28)
+      life: rnd(12,17), eaten:false, ph: rnd(0,6.28)
     });
   }
   S.ripples.push({x:px, y:py, r:2, max:Math.min(T.w*0.09, 42), a:0.55});
@@ -1675,6 +1714,8 @@ function update(dt){
     f.age += dt;
     const cond = (f.health > 0.72 && f.hunger > 0.35) ? 1 : (f.health > 0.52 ? 0.45 : 0.08);
     f.glow = clamp(f.glow + dt*0.0026*cond - dt*0.0009*(1-cond), 0, 1);
+    /* 饿着会褪色：饱食度低于 25% 起开始掉发色，喂饱就止住并慢慢回来 */
+    if(f.hunger < 0.25) f.glow = clamp(f.glow - dt*0.0009*(0.25 - f.hunger)/0.25, 0, 1);
     if(f.flare > 0) f.flare = Math.max(0, f.flare - dt*0.62);
     else if(f.glow > 0.5 && Math.random() < dt*0.10*f.glow){ f.flare = 1; if(S.snd && Math.random() < 0.6) SND.flare(); }
 
@@ -1849,7 +1890,7 @@ function update(dt){
       if(d2 < (u*3.4)*(u*3.4)){
         fd.eaten = true;
         f.bite = 0.30;
-        f.hunger = Math.min(1.15, f.hunger + 0.105);
+        f.hunger = Math.min(1.15, f.hunger + 0.22);
         f.health = Math.min(1, f.health + 0.02*f.vitality);
         S.ripples.push({x:fd.x, y:fd.y, r:1, max:u*5, a:0.3});
       }
@@ -4259,8 +4300,15 @@ function renderGoals(){
   renderBadge();
 }
 function goalTick(dt){
-  for(const f of S.fish) if(!S.seen.includes(f.sp.id)) S.seen.push(f.sp.id);
+  let dexChanged = false;
+  if(!S.palSeen) S.palSeen = [];
+  for(const f of S.fish){
+    if(!S.seen.includes(f.sp.id)){ S.seen.push(f.sp.id); dexChanged = true; }
+    const key = f.sp.id + '#' + (f.pal || 0);
+    if(!S.palSeen.includes(key)){ S.palSeen.push(key); dexChanged = true; }
+  }
   for(const c of S.creatures) if(!S.crewSeen.includes(c.type)) S.crewSeen.push(c.type);
+  if(dexChanged){ updateDexBadge(); save(); }
   if(S.clean >= 0.85) S.cleanRun += dt;
   let changed = false;
   for(const g of GOALS){
@@ -4512,45 +4560,32 @@ el('mktRefresh').onclick = refreshMarket;
 el('mktRefresh').textContent = '刷新 · ' + REFRESH_COST + ' 币';
 
 /* =========================================================
-   传说鱼的光：绕身的一点冷光 + 缓慢旋转的星芒
+   传说鱼的光：只在鱼四周留几颗缓慢旋转的像素星芒，不画任何光环
    ========================================================= */
 function drawLegendAura(f){
   const u = S.u;
   const L = f.sp.len*u*Math.min(f.size,1.15)*1.62*FSC;
-  const br = 0.5 + 0.5*Math.sin(S.time*1.1 + (f.seed||0));
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
-  // 光晕：压扁的同心圆渐变，最外圈 alpha 归零，边缘自己化开，不留硬圆
-  ctx.translate(f.x, f.y);
-  ctx.scale(1, 0.54);
-  const rg = ctx.createRadialGradient(0, 0, 0, 0, 0, L*0.98);
-  rg.addColorStop(0,    'rgba(255,240,202,0)');
-  rg.addColorStop(0.34, 'rgba(255,238,198,' + (0.050 + 0.020*br).toFixed(3) + ')');
-  rg.addColorStop(0.62, 'rgba(255,230,180,' + (0.190 + 0.050*br).toFixed(3) + ')');
-  rg.addColorStop(0.82, 'rgba(255,222,164,' + (0.130 + 0.030*br).toFixed(3) + ')');
-  rg.addColorStop(0.93, 'rgba(255,210,140,' + (0.035 + 0.015*br).toFixed(3) + ')');
-  rg.addColorStop(1,    'rgba(255,198,120,0)');
-  ctx.fillStyle = rg;
-  ctx.beginPath();
-  ctx.arc(0, 0, L*0.98, 0, 6.3);
-  ctx.fill();
-  ctx.restore();
-
-  // 星芒：细碎闪烁，不再围着鱼画圈
-  ctx.save();
-  ctx.globalCompositeOperation = 'screen';
-  const n = 3;
+  ctx.globalAlpha = 1;
+  const n = 4;
+  const arm = Math.max(2, Math.round(u*0.95));
   for(let i=0;i<n;i++){
-    const a = S.time*0.42 + i*(6.283/n) + (f.seed||0)*0.3;
-    const rx = Math.cos(a)*L*0.58, ry = Math.sin(a)*L*0.24;
-    const s = Math.max(1, Math.round(u*0.4));
-    const al = (0.32 + 0.18*Math.sin(S.time*2 + i*2)) * 0.8;
-    ctx.fillStyle = 'rgba(255,238,196,' + al.toFixed(3) + ')';
-    ctx.fillRect(Math.round(f.x+rx-s*2), Math.round(f.y+ry), s*4, 1);
-    ctx.fillRect(Math.round(f.x+rx), Math.round(f.y+ry-s*2), 1, s*4);
-    ctx.fillStyle = 'rgba(255,214,138,' + (al*0.55).toFixed(3) + ')';
-    ctx.fillRect(Math.round(f.x+rx-s), Math.round(f.y+ry+2), s*2, 1);
-    ctx.fillRect(Math.round(f.x+rx+2), Math.round(f.y+ry-s), 1, s*2);
+    const a = S.time*0.36 + i*(6.283/n) + (f.seed||0)*0.3;
+    const rr = (i % 2 ? 0.60 : 0.36);
+    const sx = Math.round(f.x + Math.cos(a)*L*rr);
+    const sy = Math.round(f.y + Math.sin(a)*L*rr*0.50);
+    const br = 0.70 + 0.30*Math.sin(S.time*1.8 + i*1.4);
+    for(let k=0;k<arm;k++){
+      const t = (1 - k/arm) * 0.95;
+      ctx.fillStyle = 'rgba(255,238,186,' + (br*t).toFixed(3) + ')';
+      ctx.fillRect(sx + k, sy, 1, 1);
+      ctx.fillRect(sx - k, sy, 1, 1);
+      ctx.fillRect(sx, sy + k, 1, 1);
+      ctx.fillRect(sx, sy - k, 1, 1);
+    }
+    ctx.fillStyle = 'rgba(255,252,232,' + (br*0.95).toFixed(3) + ')';
+    ctx.fillRect(sx, sy, 1, 1);
   }
   ctx.restore();
 }
@@ -4589,38 +4624,98 @@ function openPicker(kind){
     }).join('');
   }
   pick_.classList.add('open');
+  closeDex();
   S.cardUntil = 0;
 }
 function updatePkSub(){
   const sub = el('pkSub');
   if(!sub) return;
   sub.textContent = pkKind === 'fish'
-    ? `缸里 ${S.fish.length} / ${maxFish()} 条 · 可连续放入${S.dlc ? ' · DLC 已开' : ' · DLC 未开'}`
+    ? `缸里 ${S.fish.length} / ${maxFish()} 条 · 可连续放入`
     : `缸里 ${S.creatures.length} / 8 只 · 可连续放入`;
 }
-function renderDlc(){
-  const s = el('dlcState');
-  if(s) s.textContent = S.dlc ? '开' : '关';
-  const b = el('btnDlc');
-  if(b){
-    b.title = S.dlc ? 'DLC 已开：10 种新鱼可入缸' : '点开 DLC：解锁 10 种新鱼';
-    b.style.opacity = S.dlc ? '1' : '0.72';
-  }
-}
-function toggleDlc(){
-  S.dlc = !S.dlc;
-  if(S.dlc){
-    /* 开了 DLC，鱼市当场换一批带新鱼的货，不用干等两分钟 */
-    const dlcSp = SPECIES.filter(function(sp){ return sp.dlc; });
-    const st = mktRestock();
-    for(let i=0;i<3 && i<dlcSp.length;i++) st[i] = mktCand(dlcSp[i]);
-    S.mkt = { at: Date.now(), stock: st, said: 0 };
-  }
-  save(); renderDlc(); updatePkSub();
-  if(el('picker').classList.contains('open') && pkKind === 'fish') openPicker('fish');
-  toast(S.dlc ? 'DLC 已开 · 10 种新鱼加入选种池' : 'DLC 已关 · 只留原本 18 种');
-}
 function closePicker(){ el('picker').classList.remove('open'); }
+
+/* =========================================================
+   图鉴：养过哪些鱼、出过哪些花色、遇见过哪些传说
+   ========================================================= */
+function dexHas(spid, pal){ return (S.palSeen || []).indexOf(spid + '#' + pal) >= 0; }
+function dexIcon(sp, pal){
+  const a = PAL[sp.id];
+  if(a && a[pal] && a[pal][1]) return a[pal][1];
+  if(a && a[0] && a[0][1]) return a[0][1];
+  const s = SPR[sp.id];
+  return (s && s.img && s.img.src) || '';
+}
+function dexStats(){
+  let spGot = 0, palGot = 0, palTotal = 0;
+  for(const sp of SPECIES){
+    if((S.seen || []).indexOf(sp.id) >= 0) spGot++;
+    const n = palCount(sp);
+    palTotal += n;
+    for(let i=0;i<n;i++) if(dexHas(sp.id, i)) palGot++;
+  }
+  const lgGot = (S.legends || []).length;
+  return { spGot:spGot, spTotal:SPECIES.length, palGot:palGot, palTotal:palTotal,
+           lgGot:lgGot, lgTotal:LEGEND_NAMES.length };
+}
+function dexPct(d){
+  const got = d.spGot + d.palGot + d.lgGot, all = d.spTotal + d.palTotal + d.lgTotal;
+  return all ? Math.round(got / all * 100) : 0;
+}
+function updateDexBadge(){
+  const b = el('dxBadge'), p = el('dxPct');
+  const d = dexStats(), pct = dexPct(d);
+  if(b) b.textContent = pct + '%';
+  if(p) p.textContent = pct + '%';
+}
+function renderDex(){
+  const body = el('dxBody');
+  if(!body) return;
+  const d = dexStats();
+  updateDexBadge();
+  const cards = SPECIES.map(sp=>{
+    const on = (S.seen || []).indexOf(sp.id) >= 0;
+    const n = palCount(sp);
+    const pips = [], names = [];
+    for(let i=0;i<n;i++){
+      const has = dexHas(sp.id, i);
+      if(has) names.push(palName(sp, i));
+      pips.push('<s class="' + (i > 0 ? 'mut' : '') + (has ? ' on' : '') + '" title="' + palName(sp, i) + '"></s>');
+    }
+    return '<div class="dx-card' + (on ? ' on' : '') + '">'
+      + '<div class="dx-thumb">' + (on ? '<img src="' + dexIcon(sp, 0) + '" alt="">' : '') + '</div>'
+      + '<div class="dx-txt">'
+      +   '<div class="dx-nm">' + (on ? sp.name : '???') + '</div>'
+      +   '<div class="dx-en">' + (on ? sp.en : '未解锁') + '</div>'
+      +   '<div class="dx-pal">' + pips.join('') + '</div>'
+      +   '<div class="dx-palt">' + (on ? (names.join(' / ')) : '') + '</div>'
+      + '</div></div>';
+  });
+  const lgs = LEGEND_NAMES.map(nm=>{
+    const got = (S.legends || []).some(x=> x.n === nm);
+    return '<div class="dx-lgc' + (got ? ' on' : '') + '"><span>' + (got ? nm : '？？') + '</span></div>';
+  });
+  body.innerHTML =
+      '<div class="dx-sec first"><div class="t">品种</div><div class="n">已解锁 ' + d.spGot + ' / ' + d.spTotal + '</div></div>'
+    + '<div class="dx-grid">' + cards.join('') + '</div>'
+    + '<div class="dx-sec"><div class="t">花色</div><div class="n">' + d.palGot + ' / ' + d.palTotal + ' · 蓝点=原色 金点=异色</div></div>'
+    + '<div class="dx-sec"><div class="t">传说</div><div class="n">' + d.lgGot + ' / ' + d.lgTotal + '</div></div>'
+    + '<div class="dx-lg">' + lgs.join('') + '</div>';
+}
+function closeDex(){ el('dexBox').classList.remove('open'); }
+function openDex(){
+  renderDex();
+  el('dexBox').classList.add('open');
+  closePicker();
+  if(el('listBox').classList.contains('open')) closeList();
+  if(el('goalBox').classList.contains('open')) el('goalBox').classList.remove('open');
+  S.cardUntil = 0;
+}
+function toggleDex(){
+  if(el('dexBox').classList.contains('open')) closeDex(); else openDex();
+}
+el('dxClose').onclick = closeDex;
 
 /* =========================================================
    居民列表：一目了然看全缸，逐条移出
@@ -4636,13 +4731,9 @@ function renderList(){
       <button class="kill sell" data-kill="fish" data-id="${f.id}">卖 ${sellPrice(f)}</button>
       <div class="nm">${f.name}<i class="tag r${f.rank||0}" style="margin-left:6px;border:1px solid currentColor;padding:1px 5px;font-size:9px">${'★'.repeat((f.rank||0)+1)}</i></div>
       <div class="en">${f.sp.name} · ${palName(f.sp, f.pal||0)} · ${styleTag(f)} · ${RANK_NAME[f.rank||0]}</div>
-      ${palCount(f.sp) > 1 ? `<div class="palrow" style="display:flex;align-items:center;gap:7px;margin:7px 0 2px">
-        <span style="font-size:10px;color:#5f8fa0;letter-spacing:.10em">花色</span>
-        <select data-pal="${f.id}" style="font:11px/1.4 ui-monospace,Consolas,monospace;background:#0b2028;color:#c9e6ee;border:1px solid #2c5d6e;padding:3px 6px;outline:none">${palOf(f.sp).map((p,i)=>`<option value="${i}"${(f.pal||0)===i?' selected':''}>${p[0]}</option>`).join('')}</select>
-      </div>` : ''}
       <div class="mt">
         <span>${f.stateTxt}</span>
-        <span>饱食 ${Math.round((1-Math.min(1,f.hunger))*100)}%</span>
+        <span>饱食 ${Math.round(Math.min(1, f.hunger)*100)}%</span>
         <span>发色 ${Math.round(f.glow*100)}%</span>
         <span>${LAYER_NAME[f.sp.layer]}</span>
       </div>
@@ -4667,7 +4758,6 @@ function openList(){
 function closeList(){ el('listBox').classList.remove('open'); }
 
 el('listBody').addEventListener('click', e=>{
-  if(e.target.closest('.palrow')) return;            // 换花色别顺手把镜头锁过去
   const k = e.target.closest('[data-kill]');
   if(k){
     const id = Number(k.dataset.id);
@@ -4696,17 +4786,6 @@ el('listBody').addEventListener('click', e=>{
   if(f) followFish(f);
 });
 
-el('listBody').addEventListener('change', e=>{
-  const sel = e.target.closest('[data-pal]');
-  if(!sel) return;
-  const f = S.fish.find(o=> o.id === Number(sel.dataset.pal));
-  if(!f) return;
-  f.pal = Math.max(0, Math.min(Number(sel.value) || 0, palCount(f.sp)-1));
-  f.variant = f.pal;
-  save(); renderList();
-  toast(f.name + ' · 花色换成 ' + palName(f.sp, f.pal));
-});
-
 el('pkBody').addEventListener('click', e=>{
   const btn = e.target.closest('.pk-item');
   if(!btn) return;
@@ -4726,8 +4805,7 @@ el('pkBody').addEventListener('click', e=>{
 });
 el('pkClose').onclick = closePicker;
 el('btnList').onclick = openList;
-el('btnDlc').onclick = toggleDlc;
-renderDlc();
+el('btnDex').onclick = toggleDex;
 el('btnSkin').onclick = toggleSkin;
 renderSkin();
 el('lsClose').onclick = closeList;
@@ -5116,10 +5194,10 @@ const OLD_KEY = 'cybertank.v2';
 function save(){
   try{
     const str = JSON.stringify({
-      at: Date.now(), clean: S.clean, algae: S.algae, growth: S.growth, wlv: Math.round((S.wlv ?? 1)*1000)/1000, tank: S.tankLv || 1, rv: 2, dlc: !!S.dlc, skin: S.skin, snd: S.snd ? 1 : 0, bgm: BGM.idx + 1,
+      at: Date.now(), clean: S.clean, algae: S.algae, growth: S.growth, wlv: Math.round((S.wlv ?? 1)*1000)/1000, tank: S.tankLv || 1, rv: 2, dlc: true, skin: S.skin, snd: S.snd ? 1 : 0, bgm: BGM.idx + 1,
       deco: { weeds: S.weeds.map(w=>Math.round(w.x)), gw: S.weeds.map(w=>Math.round((w.grow||0)*100)/100), logs: (S.logs||[]).map(g=>Math.round(g.x)), stones: (S.stones||[]).map(s=>Math.round(s.x)), rocks: S.rocks.map(r=>Math.round(r.x)) },
       clock: Math.round(S.clock*100)/100, tsc: S.timeScale,
-      goals: S.goals, seen: S.seen, crewSeen: S.crewSeen,
+      goals: S.goals, seen: S.seen, palSeen: S.palSeen || [], crewSeen: S.crewSeen,
       feedTotal: S.feedTotal, cleanRun: S.cleanRun,
       mkt: S.mkt ? { at: S.mkt.at, sold: !!S.mkt.sold, stock: S.mkt.stock } : null,
       legends: S.legends || [], coin: Math.round(S.coin || 0), payAcc: S.payAcc || 0, payDay: S.payDay || 0,
@@ -5165,12 +5243,13 @@ function load(){
     setTimeout(()=>{ if(typeof toast === 'function') toast('主存档没读出来，已用备份恢复', 3200); }, 900);
   }
   const T = S.tank;
-  S.dlc = !!d.dlc;
+  S.dlc = true;                    // DLC 默认全开，老档也一并打开
   S.skin = d.skin === 'reef' ? 'reef' : 'forest';
   S.clock = (typeof d.clock === 'number') ? (d.clock % 24) : 9;
   S.timeScale = (d.tsc === 0 || d.tsc === 8) ? d.tsc : 1;
   S.goals = d.goals || {};
   S.seen = Array.isArray(d.seen) ? d.seen : [];
+  S.palSeen = Array.isArray(d.palSeen) ? d.palSeen : [];
   S.crewSeen = Array.isArray(d.crewSeen) ? d.crewSeen : [];
   S.feedTotal = d.feedTotal || 0;
   S.cleanRun = d.cleanRun || 0;
@@ -5381,7 +5460,7 @@ stage.addEventListener('pointerdown', e=>{
   if(el('picker').classList.contains('open')) closePicker();
   if(el('listBox').classList.contains('open')) closeList();
   if(S.snd) SND.boot();
-  if(S.snd && !BGM.timer) BGM.start();
+  if(S.snd) BGM.start();
   dragCam = {sx:e.clientX, sy:e.clientY, px:S.cam.px, py:S.cam.py, moved:false, wx:w.x, wy:w.y, hold:false};
   // 按住不动 = 手指贴在玻璃上逗鱼；短按才是查看这一只
   clearTimeout(holdTimer);
@@ -5477,7 +5556,8 @@ stage.addEventListener('wheel', e=>{
 
 el('btnFeed').onclick = ()=>{
   const T = S.tank;
-  for(let i=0;i<2;i++) spawnFood(T.x + T.w*rnd(0.2,0.8), T.y + T.h*rnd(0.12,0.35), 3);
+  /* 一把饲料撒 4 处、每处 8 颗：鱼多的时候也够分，喂完明显能看到饱食度上来 */
+  for(let i=0;i<5;i++) spawnFood(T.x + T.w*rnd(0.15,0.85), T.y + T.h*rnd(0.10,0.34), 10);
   toast('撒了一把饲料');
 };
 
@@ -5593,73 +5673,84 @@ el('btnSnd').onclick = ()=>{
 };
 
 /* =========================================================
-   BGM：几首耳熟的静谧纯音乐（钢琴式琶音，实时合成，不加载任何音频）
+   BGM：直接放真实录音（公有领域钢琴曲 · Wikimedia Commons 转码 mp3）
    一首放完自动接下一首，跟着「声音」总开关一起开关
    ========================================================= */
-const MIDI_F = m => 440 * Math.pow(2, (m - 69) / 12);
 const SONGS = [
-  { name:'卡农 · D 大调', bpm:56, vol:0.115,
-    prog:[[62,69,74],[57,64,69],[59,66,71],[54,61,66],[55,62,67],[62,69,74],[55,62,67],[57,64,69]] },
-  { name:'雨的印记', bpm:62, vol:0.108,
-    prog:[[60,64,67,72],[57,60,64,69],[65,69,72,76],[53,57,60,65]] },
-  { name:'天空之城', bpm:58, vol:0.112,
-    prog:[[65,69,72,77],[60,64,67,72],[67,71,74,79],[62,66,69,74]] },
-  { name:'River Flows in You', bpm:60, vol:0.106,
-    prog:[[64,67,71,76],[59,62,67,71],[69,72,76,81],[64,67,72,76]] }
+  { name:'肖邦 · 升c小调夜曲',      url:'https://upload.wikimedia.org/wikipedia/commons/transcoded/1/12/Chopin%2C_Nocturne_in_C-sharp_minor%2C_Op._Posth.ogg/Chopin%2C_Nocturne_in_C-sharp_minor%2C_Op._Posth.ogg.mp3' },
+  { name:'肖邦 · 夜曲 Op.15 No.1',  url:'https://upload.wikimedia.org/wikipedia/commons/transcoded/5/56/Chopin_-_Nocturne_Op._15_no._1_in_F_major.ogg/Chopin_-_Nocturne_Op._15_no._1_in_F_major.ogg.mp3' },
+  { name:'萨蒂 · 玄秘曲 No.1',      url:'https://upload.wikimedia.org/wikipedia/commons/transcoded/b/b7/Gymnopedie_No._1..ogg/Gymnopedie_No._1..ogg.mp3' },
+  { name:'德彪西 · 月光',           url:'https://upload.wikimedia.org/wikipedia/commons/transcoded/b/be/Clair_de_lune_%28Claude_Debussy%29_Suite_bergamasque.ogg/Clair_de_lune_%28Claude_Debussy%29_Suite_bergamasque.ogg.mp3' }
 ];
 const BGM = {
-  idx:0, timer:null, bar:0,
+  idx:0, on:false, au:null, fadeTimer:null, retry:null, vol:0.30,
+  ensure(){
+    if(this.au) return this.au;
+    const a = new Audio();
+    a.preload = 'auto';
+    a.loop = false;
+    a.volume = 0;
+    a.addEventListener('ended', ()=>{ if(this.on && this.au) this.next(); });
+    a.addEventListener('error', ()=>{
+      if(!this.on) return;
+      clearTimeout(this.retry);
+      this.retry = setTimeout(()=> this.next(), 5000);
+    });
+    this.au = a;
+    return a;
+  },
   start(){
     SND.boot(); SND.resume();
-    if(this.timer) return;
-    this.idx = Math.floor(Math.random() * SONGS.length);
-    this.bar = 0;
+    if(!S.snd) return;
+    this.on = true;
+    const a = this.ensure();
+    if(!a.src){
+      this.idx = Math.floor(Math.random()*SONGS.length);
+      this.load(true);
+      return;
+    }
+    if(!a.paused) return;
+    const p = a.play();
+    if(p && p.then) p.then(()=>{ this.fadeTo(this.vol, 2.6); }).catch(()=>{});
+  },
+  load(sayIt){
+    const a = this.ensure();
+    const sg = SONGS[this.idx];
+    if(!sg) return;
     S.bgm = this.idx + 1;
-    this.tick();
-    this.say();
+    try{ a.pause(); }catch(e){}
+    a.src = sg.url;
+    a.volume = 0;
+    const p = a.play();
+    if(p && p.then) p.then(()=>{ this.fadeTo(this.vol, 3.2); }).catch(()=>{});
+    if(sayIt) this.say();
+  },
+  next(){
+    this.idx = (this.idx + 1) % SONGS.length;
+    if(!this.on) return;
+    this.load(true);
   },
   stop(){
-    if(this.timer){ clearTimeout(this.timer); this.timer = null; }
+    this.on = false;
+    clearTimeout(this.retry);
+    if(!this.au) return;
+    this.fadeTo(0, 1.4, ()=>{ try{ this.au.pause(); }catch(e){} });
   },
   say(){
     const sg = SONGS[this.idx];
-    if(sg && S.snd) toast('正在放 · ' + sg.name, 2000);
+    if(sg && S.snd) toast('正在放 · ' + sg.name, 2200);
   },
-  key(f, delay, dur, v){
-    const c = SND.ctx;
-    if(!c) return;
-    const t = c.currentTime + delay;
-    const o1 = c.createOscillator(), o2 = c.createOscillator();
-    const g = c.createGain(), lp = c.createBiquadFilter();
-    o1.type = 'sine'; o2.type = 'triangle';
-    o1.frequency.value = f;
-    o2.frequency.value = f * 2.004;
-    lp.type = 'lowpass'; lp.frequency.value = 2300; lp.Q.value = 0.5;
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.linearRampToValueAtTime(v, t + 0.09);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o1.connect(lp); o2.connect(lp); lp.connect(g); g.connect(SND.master);
-    o1.start(t); o2.start(t);
-    o1.stop(t + dur + 0.06); o2.stop(t + dur + 0.06);
-  },
-  tick(){
-    const sg = SONGS[this.idx];
-    if(!sg) return;
-    const step = 60 / sg.bpm / 2;
-    const ch = sg.prog[this.bar % sg.prog.length];
-    for(let i=0;i<8;i++){
-      const m = ch[i % ch.length];
-      this.key(MIDI_F(m), i*step, step*3.2, sg.vol * (i % 2 ? 0.85 : 1));
-    }
-    this.key(MIDI_F(ch[0] - 12), 0, step*5.2, sg.vol*0.62);
-    this.bar++;
-    if(this.bar >= sg.prog.length * 3){
-      this.idx = (this.idx + 1) % SONGS.length;
-      this.bar = 0;
-      S.bgm = this.idx + 1;
-      this.say();
-    }
-    this.timer = setTimeout(()=> this.tick(), step*8*1000);
+  fadeTo(v, sec, done){
+    const a = this.au;
+    if(!a) return;
+    clearInterval(this.fadeTimer);
+    if(sec <= 0){ a.volume = v; if(done) done(); return; }
+    const t0 = performance.now(), v0 = a.volume;
+    this.fadeTimer = setInterval(()=>{
+      const k = Math.min(1, (performance.now() - t0)/(sec*1000));
+      a.volume = Math.max(0, Math.min(1, v0 + (v - v0)*k));
+      if(k >= 1){ clearInterval(this.fadeTimer); if(done) done(); }
+    }, 40);
   }
 };
 
@@ -5859,9 +5950,14 @@ if(window.innerWidth < 620 || window.innerHeight < 470) setMode('mini', true);
 SND.setOn(!!S.snd);
 syncSnd();
 if(S.snd) BGM.start();
+/* 浏览器不允许没交互就自动播放：第一次点/按键再补一次 */
+const kickBgm = ()=>{ if(S.snd) BGM.start(); window.removeEventListener('pointerdown', kickBgm); window.removeEventListener('keydown', kickBgm); };
+window.addEventListener('pointerdown', kickBgm);
+window.addEventListener('keydown', kickBgm);
 requestAnimationFrame(loop);
 updateHud();
 renderBadge();
+updateDexBadge();
 setInterval(save, 6000);
 
 setTimeout(()=> toast('点水面投食 · 点鱼看它的来历', 2600), 400);
