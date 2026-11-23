@@ -19,10 +19,11 @@ html,body{margin:0;height:100%;background:#04070a;overflow:hidden;
 
 /* ===== HUD ===== */
 .hud{position:fixed;left:14px;top:8px;z-index:20;pointer-events:none;
-  background:rgba(4,12,18,.62);border:1px solid rgba(126,214,255,.20);border-radius:10px;
-  padding:8px 12px 9px;backdrop-filter:blur(4px);
+  background:linear-gradient(180deg,rgba(3,12,18,.46),rgba(3,12,18,.24));
+  border:1px solid rgba(126,214,255,.18);border-radius:10px;
+  padding:8px 12px 9px;backdrop-filter:blur(10px) saturate(1.12);
   transition:opacity .45s ease,transform .45s ease;
-  text-shadow:0 1px 8px rgba(0,0,0,.75),0 0 2px rgba(0,0,0,.9);}
+  text-shadow:0 1px 8px rgba(0,0,0,.85),0 0 3px rgba(0,0,0,.95);}
 .hud .t{font-size:12.5px;letter-spacing:.22em;color:#dff5ff;text-transform:uppercase;}
 .hud .t span{color:#5c8394;letter-spacing:.12em;font-size:9px;margin-left:8px;}
 .hud .m{display:flex;gap:14px;margin-top:6px;font-variant-numeric:tabular-nums;}
@@ -180,6 +181,10 @@ body.mini .hud{left:12px;top:10px;transform:scale(.8);transform-origin:left top;
 body.mini .tools{right:10px;top:8px;transform:scale(.8);transform-origin:right top;}
 body.mini .dock{bottom:8px;padding:3px;transform:translateX(-50%) scale(.86);transform-origin:center bottom;}
 body.mini .dock button{padding:7px 10px;font-size:12px;}
+
+/* 手不动几秒后 UI 淡到几乎看不见，整屏只剩水；一动就回来 */
+body.idle .hud,body.idle .tools,body.idle .dock{opacity:.13;transition:opacity .6s ease;}
+body.idle .tools:hover,body.idle .dock:hover{opacity:1;}
 body.mini .toast{bottom:58px;font-size:11px;}
 
 @media (max-width:680px){
@@ -234,21 +239,23 @@ html,body{
 }
 .tb{
   border:2px solid var(--px-line) !important;
-  background:#07161d !important;
+  background:rgba(6,22,29,.66) !important;
   box-shadow:2px 2px 0 rgba(0,0,0,.55) !important;
   padding:6px 10px !important;
   letter-spacing:.10em !important;
+  backdrop-filter:blur(6px) !important;
 }
-.tb:hover{background:#0e2a35 !important;color:#fff !important;}
+.tb:hover{background:rgba(18,52,64,.82) !important;color:#fff !important;}
 .tb.on{
   background:#a9ecff !important;border-color:#a9ecff !important;
   color:#061118 !important;box-shadow:2px 2px 0 rgba(0,0,0,.55) !important;
 }
 .dock{
   border:2px solid var(--px-line) !important;
-  background:#061118 !important;
-  box-shadow:3px 3px 0 rgba(0,0,0,.62) !important;
+  background:rgba(6,17,24,.60) !important;
+  box-shadow:3px 3px 0 rgba(0,0,0,.55) !important;
   padding:4px !important;
+  backdrop-filter:blur(8px) !important;
 }
 .dock button:hover{background:#123039 !important;color:#fff !important;}
 .dock .sep{width:2px !important;background:rgba(126,214,255,.26) !important;}
@@ -1072,10 +1079,8 @@ function layout(){
     S.tank = {x:6, y:top, w:W-12, h:H-top-bottom};
   }else{
     const padX = Math.max(4, Math.min(12, W*0.008));
-    const padTop = Math.max(64, Math.min(76, H*0.078));
-    const padBottom = Math.max(48, Math.min(58, H*0.064));
-    /* 铺满：缸体直接吃满顶栏与底栏之间，不再按 0.545 比例居中留黑 */
-    S.tank = {x:padX, y:padTop, w:W-padX*2, h:H-padTop-padBottom};
+    /* 真·满屏：缸体铺满整个窗口，HUD 与底部按钮条改成浮在水面上的层 */
+    S.tank = {x:0, y:0, w:W, h:H};
   }
 
   const T = S.tank;
@@ -3562,14 +3567,14 @@ function drawGlass(){
 
   ctx.strokeStyle = 'rgba(150,235,255,.12)';
   ctx.lineWidth = 1;
-  roundRectPath(T.x+1, T.y+1, T.w-2, T.h-2, Math.min(8, T.h*0.03));
+  roundRectPath(T.x+1, T.y+1, T.w-2, T.h-2, 0);
   ctx.stroke();
   ctx.restore();
 }
 
 function drawFrame(){
   const T = S.tank;
-  const r = Math.min(8, T.h*0.03);
+  const r = 0;
   const lv = S.tankLv || 1;
   ctx.save();
   // 中缸：换成加厚钢框 + 四角铆钉；大缸：再加顶部与底部的金属压条
@@ -5713,6 +5718,16 @@ setLandUI();
 
 el('btnHelp').onclick = ()=> el('help').classList.add('show');
 el('btnCloseHelp').onclick = ()=> el('help').classList.remove('show');
+
+/* 闲置淡出：手不动 6 秒，HUD / 顶栏 / 按钮条一起暗下去，整屏只剩水 */
+let idleTimer = 0;
+function wakeUI(){
+  document.body.classList.remove('idle');
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(()=> document.body.classList.add('idle'), 6000);
+}
+['pointermove','pointerdown','wheel','keydown'].forEach(t=> window.addEventListener(t, wakeUI, {passive:true}));
+wakeUI();
 
 /* ============ 存档导出 / 导入 / 备份回退 ============ */
 function saveStamp(){
