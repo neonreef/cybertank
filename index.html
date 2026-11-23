@@ -1221,8 +1221,8 @@ function layerRange(layer){
 /* 缸的档位：容量 / 门票系数 / 升级价 */
 const TANK = [
   { name:'小缸', cap:36, k:1.00, price:0 },
-  { name:'中缸', cap:56, k:1.22, price:8000 },
-  { name:'大缸', cap:76, k:1.45, price:26000 }
+  { name:'中缸', cap:56, k:1.00, price:8000 },
+  { name:'大缸', cap:76, k:1.00, price:26000 }
 ];
 /* 流域组合：同流域收集得越多，门票越高（每多一种 +3%，集齐再 +10%） */
 const REGIONS = [
@@ -2305,7 +2305,7 @@ function shaftX(i, y, T){
 function lightAt(x, y){
   const T = S.tank;
   const ty = clamp((y - T.y) / T.h, 0, 1);
-  const base = 0.92 - ty * 0.80;
+  const base = 0.56 - ty * 0.40;
   let shaft = 0;
   for(let i=0;i<SHAFT_N;i++){
     const bx = shaftX(i, y, T);
@@ -2315,8 +2315,8 @@ function lightAt(x, y){
     if(v > shaft) shaft = v;
   }
   const lam = S.lampV || 0;
-  const lampK = lam * Math.max(0, 1 - Math.abs(x - (T.x + T.w*0.5))/(T.w*0.56)) * Math.max(0, 1 - ty*0.62);
-  return clamp((base*0.26 + lampK*0.95) * (S.lum ? S.lum.gain : 1), 0, 1);
+  const lampK = lam * Math.max(0, 1 - Math.abs(x - (T.x + T.w*0.5))/(T.w*0.56)) * Math.max(0, 1 - ty*0.72);
+  return clamp((base*0.26 + lampK*0.44) * (S.lum ? S.lum.gain : 1), 0, 0.70);
 }
 
 function drawFishSprite(f, spr){
@@ -2401,7 +2401,7 @@ function drawFishSprite(f, spr){
   const CUT = 0.42, TN = S.W < 720 ? 4 : 6;
   // 受光：整条鱼（含摆动尾段）吃同一份光，避免身上出现明暗分界线
   const lit = lightAt(f.x, f.y);
-  const litA = lit > 0.10 ? (0.05 + 0.34 * lit) : 0;
+  const litA = lit > 0.10 ? (0.03 + 0.17 * lit) : 0;
   const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
   const sxCut = Math.round(iw * CUT);
   const speedK = 0.62 + 0.38 * Math.min(1, Math.abs(f.vx) / 46);
@@ -2419,7 +2419,7 @@ function drawFishSprite(f, spr){
     const tone = lightTone();
     const tier = Math.max(1, Math.min(5, Math.round(litB*5)));
     tSprite = tintSprite(img, tone, id + '|' + pi + '|' + tier + '|' + S.skin);
-    tintA = clamp((0.08 + 0.40*litB) * tone[3], 0, 0.46);
+    tintA = clamp((0.05 + 0.22*litB) * tone[3], 0, 0.32);
   }
   for(let i=0;i<TN;i++){
     const p0 = (i / TN) * CUT, p1 = ((i + 1) / TN) * CUT;
@@ -2907,17 +2907,16 @@ function drawWater(){
     }
   }
 
-  // 水面下方的光池：顶部横向柔亮带，越往下越淡（梦幻主光源的落点）
+  // 水面下方的光池：横向铺满、垂直柔落的亮带（不做成椭圆，免得边缘留一圈硬弧）
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
-  ctx.globalAlpha = 0.60;
-  const pcx = T.x + T.w*0.80, pcy = T.y - T.h*0.04;
-  const pg = ctx.createRadialGradient(pcx, pcy, 0, pcx, pcy, T.h*0.58);
+  ctx.globalAlpha = 0.44;
+  const pg = ctx.createLinearGradient(0, T.y, 0, T.y + T.h*0.26);
   pg.addColorStop(0,    sk().glowTop[0]);
-  pg.addColorStop(0.30, sk().glowTop[1]);
+  pg.addColorStop(0.34, sk().glowTop[1]);
   pg.addColorStop(1,    sk().glowTop[2]);
   ctx.fillStyle = pg;
-  ctx.fillRect(T.x, T.y, T.w, Math.round(T.h*0.66));
+  ctx.fillRect(T.x, T.y, T.w, Math.round(T.h*0.26));
   const lg2 = ctx.createLinearGradient(0, T.y, 0, T.y + T.h*0.20);
   lg2.addColorStop(0, 'rgba(255,255,255,0.045)');
   lg2.addColorStop(1, 'rgba(255,255,255,0)');
@@ -3575,27 +3574,7 @@ function drawGlass(){
 function drawFrame(){
   const T = S.tank;
   const r = 0;
-  const lv = S.tankLv || 1;
   ctx.save();
-  // 中缸：换成加厚钢框 + 四角铆钉；大缸：再加顶部与底部的金属压条
-  if(lv >= 2){
-    ctx.strokeStyle = lv >= 3 ? 'rgba(86,104,116,.96)' : 'rgba(68,86,96,.92)';
-    ctx.lineWidth = lv >= 3 ? 6 : 3;
-    ctx.strokeRect(Math.round(T.x - 2) + .5, Math.round(T.y - 2) + .5, Math.round(T.w + 4), Math.round(T.h + 4));
-    const nc = Math.max(2, Math.round(T.h*0.012));
-    ctx.fillStyle = 'rgba(176,206,220,.55)';
-    const cs = [[T.x - 1, T.y - 1], [T.x + T.w + 1, T.y - 1], [T.x - 1, T.y + T.h + 1], [T.x + T.w + 1, T.y + T.h + 1]];
-    for(const c of cs) ctx.fillRect(Math.round(c[0]) - nc, Math.round(c[1]) - nc, nc*2, nc*2);
-    if(lv >= 3){
-      const bh = Math.max(3, Math.round(T.h*0.010));
-      ctx.fillStyle = 'rgba(126,150,164,.90)';
-      ctx.fillRect(T.x + 3, T.y + T.h*0.045, bh, T.h*0.91);
-      ctx.fillRect(T.x + T.w - 3 - bh, T.y + T.h*0.045, bh, T.h*0.91);
-      ctx.fillStyle = 'rgba(214,242,252,.26)';
-      ctx.fillRect(T.x + 3, T.y + T.h*0.045, Math.max(1, Math.round(bh*0.35)), T.h*0.91);
-      ctx.fillRect(T.x + T.w - 3 - bh, T.y + T.h*0.045, Math.max(1, Math.round(bh*0.35)), T.h*0.91);
-    }
-  }
   // 像素风硬边外框：两层实描边，不用发光模糊
   ctx.shadowColor = 'rgba(70,200,225,.30)';
   ctx.shadowBlur = 12;
@@ -4229,7 +4208,7 @@ function tankBlock(){
     right = '<button class="tk-up' + (poor ? ' no' : '') + '" id="tkUp">升级 ' + nx.price + ' 币</button>';
   }
   const shown = Math.max(cur.cap, S.fish.length);
-  return '<div class="tk-head"><div class="l">缸 · <b>' + cur.name + '</b> · 上限 ' + S.fish.length + '/' + shown + ' · 门票 ×' + cur.k.toFixed(2) + '</div>' + right + '</div>';
+  return '<div class="tk-head"><div class="l">缸 · <b>' + cur.name + '</b> · 上限 ' + S.fish.length + '/' + shown + '</div>' + right + '</div>';
 }
 function comboBlock(){
   const have = new Set(S.fish.map(f=>f.sp.id));
@@ -4255,7 +4234,7 @@ function upTank(){
   S.mkt = null;
   renderGoals();
   save();
-  toast('换上「' + nx.name + '」· 上限 ' + nx.cap + ' 条 · 门票 ×' + nx.k.toFixed(2), 2800);
+  toast('换上「' + nx.name + '」· 上限 ' + nx.cap + ' 条', 2800);
   if(S.snd) SND.tone(660, 0.35, 0.08, 'triangle', 0.9);
 }
 
@@ -4541,26 +4520,35 @@ function drawLegendAura(f){
   const br = 0.5 + 0.5*Math.sin(S.time*1.1 + (f.seed||0));
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
-  const rg = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, L*0.92);
+  // 光晕：压扁的同心圆渐变，最外圈 alpha 归零，边缘自己化开，不留硬圆
+  ctx.translate(f.x, f.y);
+  ctx.scale(1, 0.54);
+  const rg = ctx.createRadialGradient(0, 0, 0, 0, 0, L*0.98);
   rg.addColorStop(0,    'rgba(255,240,202,0)');
-  rg.addColorStop(0.50, 'rgba(255,234,190,' + (0.045 + 0.03*br).toFixed(3) + ')');
-  rg.addColorStop(0.755,'rgba(255,226,168,' + (0.19 + 0.09*br).toFixed(3) + ')');
-  rg.addColorStop(0.88, 'rgba(255,214,140,' + (0.08 + 0.04*br).toFixed(3) + ')');
+  rg.addColorStop(0.34, 'rgba(255,238,198,' + (0.050 + 0.020*br).toFixed(3) + ')');
+  rg.addColorStop(0.62, 'rgba(255,230,180,' + (0.190 + 0.050*br).toFixed(3) + ')');
+  rg.addColorStop(0.82, 'rgba(255,222,164,' + (0.130 + 0.030*br).toFixed(3) + ')');
+  rg.addColorStop(0.93, 'rgba(255,210,140,' + (0.035 + 0.015*br).toFixed(3) + ')');
   rg.addColorStop(1,    'rgba(255,198,120,0)');
   ctx.fillStyle = rg;
   ctx.beginPath();
-  ctx.ellipse(f.x, f.y, L*0.9, Math.max(L*0.42, u*4), 0, 0, 6.3);
+  ctx.arc(0, 0, L*0.98, 0, 6.3);
   ctx.fill();
+  ctx.restore();
+
+  // 星芒：细碎闪烁，不再围着鱼画圈
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
   const n = 3;
   for(let i=0;i<n;i++){
     const a = S.time*0.42 + i*(6.283/n) + (f.seed||0)*0.3;
-    const rx = Math.cos(a)*L*0.62, ry = Math.sin(a)*L*0.26;
-    const s = Math.max(1, Math.round(u*0.45));
-    const al = 0.62 + 0.30*Math.sin(S.time*2 + i*2);
+    const rx = Math.cos(a)*L*0.58, ry = Math.sin(a)*L*0.24;
+    const s = Math.max(1, Math.round(u*0.4));
+    const al = (0.32 + 0.18*Math.sin(S.time*2 + i*2)) * 0.8;
     ctx.fillStyle = 'rgba(255,238,196,' + al.toFixed(3) + ')';
-    ctx.fillRect(Math.round(f.x+rx-s*2), Math.round(f.y+ry), s*5, 1);
-    ctx.fillRect(Math.round(f.x+rx), Math.round(f.y+ry-s*2), 1, s*5);
-    ctx.fillStyle = 'rgba(255,214,138,' + (al*0.75).toFixed(3) + ')';
+    ctx.fillRect(Math.round(f.x+rx-s*2), Math.round(f.y+ry), s*4, 1);
+    ctx.fillRect(Math.round(f.x+rx), Math.round(f.y+ry-s*2), 1, s*4);
+    ctx.fillStyle = 'rgba(255,214,138,' + (al*0.55).toFixed(3) + ')';
     ctx.fillRect(Math.round(f.x+rx-s), Math.round(f.y+ry+2), s*2, 1);
     ctx.fillRect(Math.round(f.x+rx+2), Math.round(f.y+ry-s), 1, s*2);
   }
