@@ -1858,7 +1858,7 @@ function update(dt){
 
     // 速度上限：按物种游泳能力和体型分档，快鱼冲刺能到 2 倍
     const fast = f.sp.fast || 1;
-    let cap = u * (10 + 8*fast) / clamp(f.size, 0.8, 1.7);
+    let cap = u * (8.7 + 7.1*fast) / clamp(f.size, 0.8, 1.7);
     if(f.sick) cap *= 0.55;
     if(S.sleep > 0.2) cap *= (1 - 0.66*S.sleep);
     if(f.startle > 0) cap *= 2.15;
@@ -2371,8 +2371,12 @@ function drawFishSprite(f, spr){
   let srcS = arr[pi];
   if(!srcS || !srcS.img) srcS = SPR[id];
   const h = Math.max(6, Math.round(w * srcS.h / srcS.w));
-  const img = srcS.img;
-  const st = f.glow > 0.68 ? 2 : (f.glow > 0.33 ? 1 : 0);
+  // 发色前压饱和发灰、发色后提饱和提亮：一眼就能看出这条鱼养没养出色
+  const glowV = clamp(f.glow || 0, 0, 1);
+  const grade = glowV >= 0.68 ? 'vivid' : (glowV < 0.34 ? 'dull' : '');
+  const idK = id + (grade ? '~' + grade : '');
+  const img = grade ? gradeSprite(srcS.img, id + '|' + pi, grade) : srcS.img;
+  const st = glowV > 0.68 ? 2 : (glowV > 0.33 ? 1 : 0);
   const phase = f.phase;
 
   ctx.save();
@@ -2459,7 +2463,7 @@ function drawFishSprite(f, spr){
   if(litB > 0.08){
     const tone = lightTone();
     const tier = Math.max(1, Math.min(5, Math.round(litB*5)));
-    tSprite = tintSprite(img, tone, id + '|' + pi + '|' + tier + '|' + S.skin);
+    tSprite = tintSprite(img, tone, idK + '|' + pi + '|' + tier + '|' + S.skin);
     tintA = clamp((0.05 + 0.22*litB) * tone[3], 0, 0.32);
   }
   for(let i=0;i<TN;i++){
@@ -3822,6 +3826,29 @@ function drawGhosts(){
   }
   ctx.restore();
 }
+/* 发色分级贴图：未发色的鱼压掉饱和度显得发灰，发色到位的鱼提饱和提亮 */
+const _gradeCache = new Map();
+function gradeSprite(img, key, kind){
+  if(!img) return img;
+  if(img.complete === false) return img;
+  const k = kind + '|' + key;
+  const hit = _gradeCache.get(k);
+  if(hit) return hit;
+  const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+  if(!w || !h) return img;
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  g.imageSmoothingEnabled = false;
+  g.filter = kind === 'vivid'
+    ? 'saturate(1.62) contrast(1.07) brightness(1.05)'
+    : 'saturate(0.42) brightness(0.88) contrast(0.94)';
+  g.drawImage(img, 0, 0);
+  _gradeCache.set(k, c);
+  if(_gradeCache.size > 260) _gradeCache.clear();
+  return c;
+}
+
 const _tintCache = new Map();
 function tintSprite(img, tone, key){
   let c = _tintCache.get(key);
@@ -4178,7 +4205,7 @@ function showFishCard(f){
       <span class="tag">${LAYER_NAME[sp.layer]}</span>
     </div>
     <div class="bars">
-      ${bar('饱食', 1 - clamp(f.hunger,0,1), 'auto')}
+      ${bar('饱食', clamp(f.hunger,0,1), 'auto')}
       ${bar('健康', f.health, 'auto')}
       ${bar('发色', f.glow, 'auto')}
     </div>
